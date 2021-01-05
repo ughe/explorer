@@ -20,7 +20,7 @@ function hotiron(x, xmin, xmax) {
 }
 
 function ptr_to_url(ptr) {
-  return `/data/imgs/${ptr}.${config["imgs-fmt"]}`;
+  return `data/imgs/${ptr}.${config["imgs-fmt"]}`;
 }
 
 let pad = (n, m, pre) => ("" + n).padStart(m, pre); // helper for padding text
