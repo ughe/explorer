@@ -10,7 +10,7 @@ const cer_range = [0.0, 1.0];
 const dur_range = [0, 12 * 1000];
 
 // Datafile global vars
-let head, ptrs, results;
+let config = {}, ptrs;
 let metrics = {}, metric_ranges = {};
 
 // Global vars
@@ -71,7 +71,7 @@ let set_weights = (m) => {
 
 function set_metric(event) {
   set_weights(event.value);
-  draw_grid(context.n_cells, context.fst, context.lst);
+  draw_grid(context.n_cells, context.fst, context.lst, true);
 }
 
 function back(event) {
@@ -88,7 +88,7 @@ function back(event) {
     e_back_button.style.display = "none";
   }
 
-  draw_grid(n_cells, fst, lst);
+  draw_grid(n_cells, fst, lst)
 
   // Draw cell on grid
   e_canvas.highlight_square(row, col);
@@ -97,16 +97,39 @@ e_back_button.addEventListener('click', back, false);
 
 // main function
 (async () => {
-  [head, results] = await Promise.all([
-    fetch('data/head.csv').then(r => r.text()).then(t => t.trim().split("\n").map(x => x.split(","))),
+  let conf, results;
+  [conf, results] = await Promise.all([
+    fetch('data/config.csv').then(r => r.text()).then(t => t.trim().split("\n").map(x => x.split(","))),
     fetch('data/results.csv').then(r => r.text()).then(t => t.trim().split("\n").map(x => x.split(","))),
   ]);
+
+  // Handle the configuration file. Two keys are mandatory: imgs-fmt and txts-dirs
+  for (let i = 0; i < conf.length; i++) {
+    let key = conf[i][0], val = conf[i][1];
+    config[key] = val;
+  }
+  config["txts-dirs"] = config["txts-dirs"].split(";");
+  if ("title" in config) {
+    document.title = config["title"];
+    document.getElementById("title").innerHTML = config["title"];
+  }
+  if ("code" in config) {
+    let button = document.createElement("a");
+    button.className = "button";
+    button.innerHTML = "Code";
+    button.href = config["code"];
+    document.getElementById("links").prepend(button);
+  }
+  if ("license" in config) {
+    let button = document.createElement("a");
+    button.className = "button";
+    button.innerHTML = "License";
+    button.href = config["license"];
+    document.getElementById("links").appendChild(button);
+  }
+
+  // Handle the results file
   ptrs = results[0].slice(1);
-
-  // Expects results to already be in row-order. No need to transpose
-  // Transpose from https://stackoverflow.com/a/17428705
-  // let transpose = (x) => x[0].map((_, coli) => x.map(row => row[coli]));
-
   for (let i = 1; i < results.length; i++) {
     metrics[results[i][0]] = results[i].slice(1).map(x => parseFloat(x));
     metric_ranges[results[i][0]] = [Math.min(...metrics[results[i][0]]), Math.max(...metrics[results[i][0]])];
@@ -114,6 +137,15 @@ e_back_button.addEventListener('click', back, false);
 
   metrics["Index"] = [...Array(ptrs.length).keys()];
   metric_ranges["Index"] = [0, ptrs.length-1];
+
+  // Initialize metrics
+  let selector = document.getElementById("metric");
+  for (const m of Object.keys(metrics)) {
+    let option = document.createElement("option");
+    option.value = m;
+    option.innerHTML = m;
+    selector.appendChild(option);
+  }
 
   set_weights(Object.keys(metrics)[0]);
   draw_grid(n_cells, 0, ptrs.length - 1);

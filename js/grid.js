@@ -20,7 +20,7 @@ function hotiron(x, xmin, xmax) {
 }
 
 function ptr_to_url(ptr) {
-  return `/data/imgs/${ptr}.jpg`;
+  return `/data/imgs/${ptr}.${config["imgs-fmt"]}`;
 }
 
 let pad = (n, m, pre) => ("" + n).padStart(m, pre); // helper for padding text
@@ -79,9 +79,7 @@ function range_of_event(length, canvas, cl, cpr, per_cell, em, event) {
   return [fst, lst];
 }
 
-function draw_grid(n_cells, fst, lst) {
-  zoom_lock += 1;
-  let _zoom_lock = zoom_lock;
+function draw_grid(n_cells, fst, lst, skip_img=false) {
   let length = lst - fst + 1;
   let per_cell = Math.ceil(length / n_cells);
   n_cells = Math.ceil(length / per_cell);
@@ -104,7 +102,9 @@ function draw_grid(n_cells, fst, lst) {
   context.lst = lst;
 
   context.fillStyle = highlight;
-  context.fillRect(0, 0, grid_len, grid_len);
+  if (!skip_img) {
+    context.fillRect(0, 0, grid_len, grid_len);
+  }
   for (let i = 0; i < cells_per_row; i += 1) {
     for (let j = 0; j < cells_per_row && fc(i, j) < n_cells; j += 1) {
       let key = "" + fc(i, j) + "_" + per_cell;
@@ -112,20 +112,25 @@ function draw_grid(n_cells, fst, lst) {
       let ws = weights.slice(fst + fc(i, j)*per_cell, fst + (fc(i, j) + 1)*per_cell);
       let avgw = ws.reduce((a, w) => a + parseFloat(w), 0) / ws.length;
       let color = hotiron(avgw, wmin, wmax);
+      const strip_width = 5;
       if (per_cell == 1) {
         // draw image on each cell
         let img = new Image;
         img.onload = () => {
-          if (zoom_lock != _zoom_lock) { return; }
           let s = Math.min(img.width, img.height);
-          const strip_width = 5;
           context.fillStyle = color;
           context.fillRect(em + j*cell_len, em + i*cell_len, strip_width, side_len);
           context.drawImage(img, 0, 0, s, s,
                             em + j*cell_len + strip_width + margin_len,
                             em + i*cell_len, side_len - strip_width - margin_len, side_len);
         };
-        img.src = ptr_to_url(ptrs[fst + fc(i, j)]);
+        if (!skip_img) {
+          img.src = ptr_to_url(ptrs[fst + fc(i, j)]);
+        } else {
+          let s = Math.min(img.width, img.height);
+          context.fillStyle = color;
+          context.fillRect(em + j*cell_len, em + i*cell_len, strip_width, side_len);
+        }
       } else {
         context.fillStyle = color;
         context.fillRect(em + j*cell_len, em + i*cell_len, side_len, side_len);

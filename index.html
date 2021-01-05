@@ -8,9 +8,9 @@
   <body>
     <div id="nav" class="flex jc-space-between ai-center">
       <div class="left">
-        <a class="title" href="/">Explorer</a>
+        <a id="title" class="title" href="/">Explorer</a>
       </div>
-      <div class="right">
+      <div id="links" class="right">
         <!-- TODO -->
         <!--<a class="button" href="">Code</a> -->
         <a class="button" href="/data">Data</a>
@@ -24,7 +24,6 @@
           <div><a class="label">Ptrs</a><a id="ptr" class="label-val">Start to End</a></div>
           <div><a class="label">Imgs</a><a id="nimgs" class="label-val">0</a></div>
           <div><a class="label">Metric</a><select id="metric" class="label-val" onchange="set_metric(this)">
-              <option value=""></option>
             </select></div>
         </div>
         <canvas id="grid"></canvas>

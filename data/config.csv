@@ -1,5 +1,5 @@
 title,Old Bailey and OCR Explorer [mini]
 code,https://github.com/ughe/old-bailey
 license,https://www.oldbaileyonline.org/static/Legal-info.jsp#termsofuse
-imgs,jpg
-txts,Authoritative;AWS;Azure;GCP
+imgs-fmt,jpg
+txts-dirs,Authoritative;AWS;Azure;GCP
