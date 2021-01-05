@@ -129,8 +129,19 @@ e_back_button.addEventListener('click', back, false);
   // Handle the results file
   ptrs = results[0].slice(1);
   for (let i = 1; i < results.length; i++) {
-    metrics[results[i][0]] = results[i].slice(1).map(x => parseFloat(x));
-    metric_ranges[results[i][0]] = [Math.min(...metrics[results[i][0]]), Math.max(...metrics[results[i][0]])];
+    let m = results[i][0];
+    metrics[m] = results[i].slice(1).map(x => parseFloat(x));
+    // Calculate min and max for each metric
+    let min = metrics[m][0], max = metrics[m][0];
+    for (let j = 1; j < metrics[m].length; j++) {
+      let jv = metrics[m][j];
+      if (jv < min) {
+        min = jv;
+      } else if (jv > max) {
+        max = jv;
+      }
+    }
+    metric_ranges[results[i][0]] = [min, max];
   }
 
   metrics["Index"] = [...Array(ptrs.length).keys()];
