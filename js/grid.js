@@ -152,9 +152,14 @@ function draw_grid(n_cells, fst, lst, skip_img=false) {
     let dst = _lst - _fst + 1;
     if (dst > 1) {
       e_ptr_hover.innerHTML = `${ptrs[fst + _fst]} to ${ptrs[fst + _lst]}`;
+      let ws = weights.slice(fst + _fst, fst + _lst + 1);
+      let avgw = ws.reduce((a, w) => a + parseFloat(w), 0) / ws.length;
+      e_val_hover.innerHTML = avgw; // TODO: might take too much time
     } else {
       e_ptr_hover.innerHTML = `${ptrs[fst + _fst]}`;
+      e_val_hover.innerHTML = weights[fst + _fst];
     }
+    e_val_hover_lbl.innerHTML = metric_name;
   }
 
   function select(event) {
@@ -174,46 +179,37 @@ function draw_grid(n_cells, fst, lst, skip_img=false) {
     } else {
       /* Open image */
       let ptr = ptrs[fst + _fst];
-      let img = document.getElementById("preview-img");
-      img.src = ptr_to_url(ptr);
-      img.alt = ptr;
+      e_img.src = ptr_to_url(ptr);
+      e_img.alt = ptr;
 
       // Display image metadata
       e_img_ptr.innerHTML = ptr;
       e_img_index.innerHTML = fst + _fst;
-      e_img_aws_cer.innerHTML = (aws_cer[fst + _fst] * 100).toFixed(2) + "%";
-      e_img_aws_cer.style.borderColor = hotiron(aws_cer[fst + _fst], wmin, wmax);
-      e_img_azu_cer.innerHTML = (azu_cer[fst + _fst] * 100).toFixed(2) + "%";
-      e_img_azu_cer.style.borderColor = hotiron(azu_cer[fst + _fst], wmin, wmax);
-      e_img_gcp_cer.innerHTML = (gcp_cer[fst + _fst] * 100).toFixed(2) + "%";
-      e_img_gcp_cer.style.borderColor = hotiron(gcp_cer[fst + _fst], wmin, wmax);
+      e_img_val_lbl.innerHTML = metric_name;
+      e_img_val.innerHTML = weights[fst + _fst];
+      e_img_val.style.borderColor = hotiron(weights[fst + _fst], wmin, wmax);
+      // Show the results table
+      e_table.innerHTML = '';
+      for (const m of Object.keys(metrics)) {
+        let tr = document.createElement("tr")
+        let key = document.createElement("td");
+        key.innerHTML = m;
+        let val = document.createElement("td");
+        val.className = "big-border";
+        val.innerHTML = metrics[m][fst + _fst];
+        val.style.borderColor = hotiron(metrics[m][fst + _fst], metric_ranges[m][0], metric_ranges[m][1]);
+        tr.appendChild(key);
+        tr.appendChild(val);
+        e_table.appendChild(tr);
+      }
 
-      e_img_aws_time.innerHTML = aws_dur[fst + _fst] / 1000;
-      e_img_aws_time.style.borderColor = hotiron(aws_dur[fst + _fst] / 1000, wmin, wmax);
-      e_img_azu_time.innerHTML = azu_dur[fst + _fst] / 1000;
-      e_img_azu_time.style.borderColor = hotiron(azu_dur[fst + _fst] / 1000, wmin, wmax);
-      e_img_gcp_time.innerHTML = gcp_dur[fst + _fst] / 1000;
-      e_img_gcp_time.style.borderColor = hotiron(gcp_dur[fst + _fst] / 1000, wmin, wmax);
-
-      fetch("data/explorer/human-transcription/" + pre + "/" + ptr + ".txt")
-        .then(response => response.text())
-        .then(text => e_human_trans.innerHTML = text.split("\n").join("<br><br>"));
-      fetch("data/explorer/plaintext-ocr/" + pre + "/" + ptr + ".aws.txt")
-        .then(response => response.text())
-        .then(text => e_aws_trans.innerHTML = text.split("\n").join("<br><br>"));
-      fetch("data/explorer/plaintext-ocr/" + pre + "/" + ptr + ".azure.txt")
-        .then(response => response.text())
-        .then(text => e_azu_trans.innerHTML = text.split("\n").join("<br><br>"));
-      fetch("data/explorer/plaintext-ocr/" + pre + "/" + ptr + ".gcp.txt")
-        .then(response => response.text())
-        .then(text => e_gcp_trans.innerHTML = text.split("\n").join("<br><br>"));
-
-      e_aws_cer.innerHTML = (aws_cer[fst + _fst] * 100).toFixed(2) + "%";
-      e_aws_cer.style.borderColor = hotiron(aws_cer[fst + _fst], wmin, wmax);
-      e_azu_cer.innerHTML = (azu_cer[fst + _fst] * 100).toFixed(2) + "%";
-      e_azu_cer.style.borderColor = hotiron(azu_cer[fst + _fst], wmin, wmax);
-      e_gcp_cer.innerHTML = (gcp_cer[fst + _fst] * 100).toFixed(2) + "%";
-      e_gcp_cer.style.borderColor = hotiron(gcp_cer[fst + _fst], wmin, wmax);
+      for (const dir of config["txts-dirs"]) {
+        fetch(`data/txts/${dir}/${ptr}.txt`)
+          .then(response => response.text())
+          .then(text => e_transcriptions[dir].innerHTML = text.split("\n").join("<br><br>"));
+        // e_gcp_cer.style.borderColor = hotiron(gcp_cer[fst + _fst], wmin, wmax);
+        // TODO ^ labels are no longer directly on top of transcriptions
+      }
     }
   }
 

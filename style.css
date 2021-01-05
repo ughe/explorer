@@ -131,7 +131,7 @@ canvas {
   margin-right: 4px;
 }
 
-#img-aws-cer, #img-azu-cer, #img-gcp-cer, #aws-cer, #azu-cer, #gcp-cer {
+.big-border {
   border: 6px solid white;
   border-radius: 6px;
 }
@@ -149,8 +149,9 @@ canvas {
 }
 
 .toolbar-mini {
-  height: 26px;
+  min-height: 26px;
   display: flex;
+  flex-wrap: wrap;
   justify-content: flex-start;
   align-items: center;
   background-color: #BEAFFF;
@@ -211,7 +212,10 @@ canvas {
 }
 td {
   padding: 5px;
-  background: #EEE;
+}
+tr {
+  background-color: #DEADBE;
+  border-radius: 2px;
 }
 table {
   margin: 5px;

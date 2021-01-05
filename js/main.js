@@ -14,7 +14,7 @@ let config = {}, ptrs;
 let metrics = {}, metric_ranges = {};
 
 // Global vars
-let metric, weights, wmin, wmax;
+let metric, weights, wmin, wmax, metric_name;
 let zoom_lock = 0; // Used to stop rendering on zoom change
 let zoom_stack = [];
 
@@ -37,18 +37,15 @@ let e_ptr_hover = document.getElementById("ptr-hover");
 let e_val_hover = document.getElementById("val-hover");
 let e_val_hover_lbl = document.getElementById("val-hover-lbl");
 // img elements
+let e_img = document.getElementById("preview-img");
 let e_img_ptr = document.getElementById("img-ptr");
-/*
-let e_img_aws_cer = document.getElementById("img-aws-cer");
-let e_img_azu_cer = document.getElementById("img-azu-cer");
-let e_img_gcp_cer = document.getElementById("img-gcp-cer");
-*/
 let e_img_index = document.getElementById("img-index");
-/*
-let e_img_aws_time = document.getElementById("img-aws-time");
-let e_img_azu_time = document.getElementById("img-azu-time");
-let e_img_gcp_time = document.getElementById("img-gcp-time");
-*/
+let e_img_val = document.getElementById("img-val");
+let e_img_val_lbl = document.getElementById("img-val-lbl");
+// results table and transcription panes
+let e_table = document.getElementById("results-table");
+let e_transcriptions = {};
+let e_dashboard = document.getElementById("dashboard");
 // transcriptions
 let e_human_trans = document.getElementById("human-trans");
 let e_aws_trans = document.getElementById("aws-trans");
@@ -64,6 +61,7 @@ let set_weights = (m) => {
     weights = metrics[m];
     wmin = metric_ranges[m][0];
     wmax = metric_ranges[m][1];
+    metric_name = m;
   } else {
     console.warn("Invalid #metric", m);
   }
@@ -147,7 +145,25 @@ e_back_button.addEventListener('click', back, false);
     selector.appendChild(option);
   }
 
-  set_weights(Object.keys(metrics)[0]);
+  // Initialize transcription panes
+  for (const dir of config["txts-dirs"]) {
+    let div = document.createElement("div");
+    div.className = "pane";
+    let toolbar = document.createElement("div");
+    toolbar.className = "toolbar";
+    let title = document.createElement("div");
+    title.innerHTML = dir + " Transcription";
+    toolbar.appendChild(title);
+    div.appendChild(toolbar);
+    let e_transcript = document.createElement("div");
+    e_transcript.className = "transcription";
+    div.appendChild(e_transcript);
+    e_dashboard.appendChild(div);
+    e_transcriptions[dir] = e_transcript;
+  }
+
+  metric_name = Object.keys(metrics)[0];
+  set_weights(metric_name);
   draw_grid(n_cells, 0, ptrs.length - 1);
 })();
 
