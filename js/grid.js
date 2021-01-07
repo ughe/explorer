@@ -80,6 +80,8 @@ function range_of_event(length, canvas, cl, cpr, per_cell, em, event) {
 }
 
 function draw_grid(n_cells, fst, lst, skip_img=false) {
+  zoom_lock += 1;
+  let _zoom_lock = zoom_lock;
   let length = lst - fst + 1;
   let per_cell = Math.ceil(length / n_cells);
   n_cells = Math.ceil(length / per_cell);
@@ -117,6 +119,7 @@ function draw_grid(n_cells, fst, lst, skip_img=false) {
         // draw image on each cell
         let img = new Image;
         img.onload = () => {
+          if (zoom_lock != _zoom_lock) { return; }
           let s = Math.min(img.width, img.height);
           context.fillStyle = color;
           context.fillRect(em + j*cell_len, em + i*cell_len, strip_width, side_len);
@@ -144,8 +147,8 @@ function draw_grid(n_cells, fst, lst, skip_img=false) {
   function hover(event) {
     let [row, col] = coor_of_event(e_canvas, cell_len, cells_per_row, em, event);
     let index = index_of_event(e_canvas, cell_len, cells_per_row, em, event);
-    e_row.innerHTML = pad(row, 4, "0");
-    e_col.innerHTML = pad(col, 4, "0");
+    e_row.innerHTML = pad(row, 2, "0");
+    e_col.innerHTML = pad(col, 2, "0");
     e_index.innerHTML = pad(index, 4, "0");
 
     let [_fst, _lst] = range_of_event(length, e_canvas, cell_len, cells_per_row, per_cell, em, event);
