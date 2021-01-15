@@ -46,14 +46,6 @@ let e_img_val_lbl = document.getElementById("img-val-lbl");
 let e_table = document.getElementById("results-table");
 let e_transcriptions = {};
 let e_dashboard = document.getElementById("dashboard");
-// transcriptions
-let e_human_trans = document.getElementById("human-trans");
-let e_aws_trans = document.getElementById("aws-trans");
-let e_azu_trans = document.getElementById("azu-trans");
-let e_gcp_trans = document.getElementById("gcp-trans");
-let e_aws_cer = document.getElementById("aws-cer");
-let e_azu_cer = document.getElementById("azu-cer");
-let e_gcp_cer = document.getElementById("gcp-cer");
 
 // Load the datafiles (more global vars)
 let set_weights = (m) => {

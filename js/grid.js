@@ -157,7 +157,7 @@ function draw_grid(n_cells, fst, lst, skip_img=false) {
       e_ptr_hover.innerHTML = `${ptrs[fst + _fst]} to ${ptrs[fst + _lst]}`;
       let ws = weights.slice(fst + _fst, fst + _lst + 1);
       let avgw = ws.reduce((a, w) => a + parseFloat(w), 0) / ws.length;
-      e_val_hover.innerHTML = avgw; // TODO: might take too much time
+      e_val_hover.innerHTML = avgw.toFixed(2); // TODO: might take too much time
     } else {
       e_ptr_hover.innerHTML = `${ptrs[fst + _fst]}`;
       e_val_hover.innerHTML = weights[fst + _fst];
