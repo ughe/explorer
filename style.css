@@ -210,13 +210,10 @@ canvas {
   max-width: 25vw;
   max-height: calc( 100vh - 53px * 3);
 }
-td {
-  padding: 5px;
-}
-tr {
+#results-table td {
   background-color: #DEADBE;
-  border-radius: 2px;
+  padding: 7px;
 }
-table {
-  margin: 5px;
+#results-table {
+  border-spacing: 1px;
 }
