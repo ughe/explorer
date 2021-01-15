@@ -1,5 +1,8 @@
 title,Old Bailey and OCR Explorer [mini]
-code,https://github.com/ughe/old-bailey
-license,https://www.oldbaileyonline.org/static/Legal-info.jsp#termsofuse
 imgs-fmt,jpg
 txts-dirs,Authoritative;AWS;Azure;GCP
+[]links,Code;https://github.com/ughe/old-bailey
+[]links,Data;data
+[]links,License;https://www.oldbaileyonline.org/static/Legal-info.jsp#termsofuse
+[]range,CER;0;1
+[]range,Time;0;12000

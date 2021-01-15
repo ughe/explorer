@@ -104,44 +104,68 @@ e_back_button.addEventListener('click', back, false);
   // Handle the configuration file. Two keys are mandatory: imgs-fmt and txts-dirs
   for (let i = 0; i < conf.length; i++) {
     let key = conf[i][0], val = conf[i][1];
-    config[key] = val;
+    if (key.substr(0,2) == "[]") {
+      if (Array.isArray(config[key])) {
+        config[key].push(val);
+      } else {
+        config[key] = [val];
+      }
+    } else {
+      config[key] = val;
+    }
   }
   config["txts-dirs"] = config["txts-dirs"].split(";");
   if ("title" in config) {
     document.title = config["title"];
     document.getElementById("title").innerHTML = config["title"];
   }
-  if ("code" in config) {
-    let button = document.createElement("a");
-    button.className = "button";
-    button.innerHTML = "Code";
-    button.href = config["code"];
-    document.getElementById("links").prepend(button);
+  if ("[]links" in config) {
+    for (let i = 0; i < config["[]links"].length; i++) {
+      let namehref = config["[]links"][i].split(";");
+      let button = document.createElement("a");
+      button.className = "button";
+      button.innerHTML = namehref[0];
+      button.href = namehref[1];
+      document.getElementById("links").appendChild(button);
+    }
   }
-  if ("license" in config) {
-    let button = document.createElement("a");
-    button.className = "button";
-    button.innerHTML = "License";
-    button.href = config["license"];
-    document.getElementById("links").appendChild(button);
+  let confnames = [];
+  let confrange = [];
+  if ("[]range" in config) {
+    for (let i = 0; i < config["[]range"].length; i++) {
+      let namelohi = config["[]range"][i].split(";");
+      confnames.push(namelohi[0].toLowerCase());
+      confrange.push([parseFloat(namelohi[1]), parseFloat(namelohi[2])]);
+    }
   }
 
   // Handle the results file
   ptrs = results[0].slice(1);
   for (let i = 1; i < results.length; i++) {
     let m = results[i][0];
+    let mlc = m.toLowerCase();
     metrics[m] = results[i].slice(1).map(x => parseFloat(x));
-    // Calculate min and max for each metric
-    let min = metrics[m][0], max = metrics[m][0];
-    for (let j = 1; j < metrics[m].length; j++) {
-      let jv = metrics[m][j];
-      if (jv < min) {
-        min = jv;
-      } else if (jv > max) {
-        max = jv;
+    let found = false;
+    for (let j = 0; j < confnames.length; j++) {
+      if (mlc.includes(confnames[j])) {
+        metric_ranges[m] = confrange[j];
+        found = true;
+        break;
       }
     }
-    metric_ranges[results[i][0]] = [min, max];
+    if (!found) {
+      // Calculate min and max for each metric
+      let min = metrics[m][0], max = metrics[m][0];
+      for (let j = 1; j < metrics[m].length; j++) {
+        let jv = metrics[m][j];
+        if (jv < min) {
+          min = jv;
+        } else if (jv > max) {
+          max = jv;
+        }
+      }
+      metric_ranges[m] = [min, max];
+    }
   }
 
   metrics["Index"] = [...Array(ptrs.length).keys()];
