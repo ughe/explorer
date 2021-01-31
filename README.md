@@ -6,10 +6,12 @@ The `data/` directory contains the following structure:
 ├── config.csv
 ├── imgs
 │   └── .gitkeep
-├── plaintext
+├── txts
 │   └── .gitkeep
 └── results.csv
 ```
+
+See https://obo.cs.princeton.edu/mini/data for a full example of the `data/` directory with `imgs/` and `txts/` included.
 
 ## Get Started
 
