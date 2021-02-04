@@ -16,19 +16,19 @@
     </div>
     <div id="dashboard">
       <div class="pane">
-        <div class="toolbar">
+        <div class="toolbar grid-width">
           <a href="#" id="back-button">Back</a>
           <div><a class="label">Ptrs</a><a id="ptr" class="label-val">Start to End</a></div>
           <div><a class="label">Imgs</a><a id="nimgs" class="label-val">0</a></div>
           <div><a class="label">Metric</a><select id="metric" class="label-val" onchange="set_metric(this)"></select></div>
         </div>
         <canvas id="grid"></canvas>
-        <div class="toolbar-mini">
-          <div><a class="label-mini">Row</a><a id="row" class="label-val-mini">00</a></div>
-          <div><a class="label-mini">Col</a><a id="col" class="label-val-mini">00</a></div>
-          <div><a class="label-mini">Index</a><a id="index" class="label-val-mini">0000</a></div>
-          <div><a class="label-mini">Pointers</a><a id="ptr-hover" class="label-val-mini"></a></div>
-          <div><a id="val-hover-lbl" class="label-mini">Metric</a><a id="val-hover" class="label-val-mini"></a></div>
+        <div class="toolbar-mini grid-width">
+          <div class="widget"><a class="label-mini">Row</a><a id="row" class="label-val-mini">00</a></div>
+          <div class="widget"><a class="label-mini">Col</a><a id="col" class="label-val-mini">00</a></div>
+          <div class="widget"><a class="label-mini">Index</a><a id="index" class="label-val-mini">0000</a></div>
+          <div class="widget"><a class="label-mini">Pointers</a><a id="ptr-hover" class="label-val-mini"></a></div>
+          <div class="widget"><a id="val-hover-lbl" class="label-mini">Metric</a><a id="val-hover" class="label-val-mini"></a></div>
         </div>
       </div><!--
    --><div class="pane">
@@ -38,7 +38,7 @@
         </div>
         <img id="preview-img" src="" alt="">
         <div class="toolbar-mini">
-          <div><a class="label-mini">Absolute Index</a><a id="img-index" class="label-val-mini"></a></div>
+          <div class="widget"><a class="label-mini">Absolute Index</a><a id="img-index" class="label-val-mini"></a></div>
         </div>
       </div><!--
    --><div class="pane">

@@ -148,6 +148,15 @@ canvas {
   border-bottom-left-radius: 0px;
 }
 
+.grid-width {
+  max-width: min(50vw, calc(100vh - 53px * 3));
+  justify-content: flex-start;
+}
+
+.widget {
+  margin: 1px 0px 2px 0px;
+}
+
 .toolbar-mini {
   min-height: 26px;
   display: flex;
@@ -163,8 +172,8 @@ canvas {
 
 .label-mini {
   background-color: white;
-  padding: 2px;
-  padding-right: 2px;
+  padding: 1px;
+  padding-right: 1px;
   border-right: 1px solid #BEAFFF;
   border-top-left-radius: 2px;
   border-bottom-left-radius: 2px;
@@ -173,8 +182,8 @@ canvas {
 
 .label-val-mini {
   background-color: white;
-  padding: 2px;
-  padding-left: 2px;
+  padding: 1px;
+  padding-left: 1px;
   border-top-right-radius: 2px;
   border-bottom-right-radius: 2px;
   margin-right: 4px;
