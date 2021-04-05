@@ -18,27 +18,33 @@
       <div class="pane">
         <div class="toolbar grid-width">
           <a href="#" id="back-button">Back</a>
-          <div><a class="label">Ptrs</a><a id="ptr" class="label-val">Start to End</a></div>
-          <div><a class="label">Imgs</a><a id="nimgs" class="label-val">0</a></div>
-          <div><a class="label">Metric</a><select id="metric" class="label-val" onchange="set_metric(this)"></select></div>
+          <div><a class="label">Metric&ZeroWidthSpace;</a><select id="metric" aria-label="Select Metric" class="label-val" onchange="set_metric(this)"></select></div>
+          <div><a class="label">Imgs&ZeroWidthSpace;</a><a id="nimgs" class="label-val">0</a></div>
+          <div><a class="label">Ptrs&ZeroWidthSpace;</a><a id="ptr" class="label-val">Start to End</a></div>
         </div>
         <canvas id="grid"></canvas>
         <div class="toolbar-mini grid-width">
-          <div class="widget"><a class="label-mini">Row</a><a id="row" class="label-val-mini">00</a></div>
-          <div class="widget"><a class="label-mini">Col</a><a id="col" class="label-val-mini">00</a></div>
-          <div class="widget"><a class="label-mini">Index</a><a id="index" class="label-val-mini">0000</a></div>
-          <div class="widget"><a class="label-mini">Pointers</a><a id="ptr-hover" class="label-val-mini"></a></div>
+          <div class="widget"><a class="label-mini">Row&ZeroWidthSpace;</a><a id="row" class="label-val-mini">00</a></div>
+          <div class="widget"><a class="label-mini">Col&ZeroWidthSpace;</a><a id="col" class="label-val-mini">00</a></div>
+          <div class="widget"><a class="label-mini">Index&ZeroWidthSpace;</a><a id="index" class="label-val-mini">0000</a></div>
+          <div class="widget"><a class="label-mini">Pointers&ZeroWidthSpace;</a><a id="ptr-hover" class="label-val-mini"></a></div>
           <div class="widget"><a id="val-hover-lbl" class="label-mini">Metric</a><a id="val-hover" class="label-val-mini"></a></div>
         </div>
       </div><!--
    --><div class="pane">
         <div class="toolbar">
-          <div><a class="label">Pointer</a><a id="img-ptr" class="label-val"></a></div>
+          <div>
+            <a href="#" id="left-button" class="small-button">&lsaquo;</a>
+            <a href="#" id="right-button" class="small-button">&rsaquo;</a>
+          </div>
+          <div class="flex-around">
+          <div><a class="label">Pointer&ZeroWidthSpace;</a><a id="img-ptr" class="label-val"></a></div>
           <div><a id="img-val-lbl" class="label">Metric</a><a id="img-val" class="label-val big-border"></a></div>
+          </div>
         </div>
         <img id="preview-img" src="" alt="">
         <div class="toolbar-mini">
-          <div class="widget"><a class="label-mini">Absolute Index</a><a id="img-index" class="label-val-mini"></a></div>
+          <div class="widget"><a class="label-mini">Absolute Index&ZeroWidthSpace;</a><a id="img-index" class="label-val-mini"></a></div>
         </div>
       </div><!--
    --><div class="pane">

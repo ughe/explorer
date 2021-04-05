@@ -1,13 +1,13 @@
 "use strict";
 
 // Constants
-const n_cells = 1936;
-const max_cells_per_row = 250;
+const max_n_cells = 44*44;
 const margin_len = 1; // cell margin
 // Colors
-const highlight = "#DEADBE";
-const cer_range = [0.0, 1.0];
-const dur_range = [0, 12 * 1000];
+const background = "#DEADBE";
+const highlight = "#66FF00";
+const cer_range = [0.0, 1.0];     // 100% CER max
+const dur_range = [0, 12 * 1000]; // 12 seconds max
 
 // Datafile global vars
 let config = {}, ptrs;
@@ -42,6 +42,9 @@ let e_img_ptr = document.getElementById("img-ptr");
 let e_img_index = document.getElementById("img-index");
 let e_img_val = document.getElementById("img-val");
 let e_img_val_lbl = document.getElementById("img-val-lbl");
+// img navigation
+let e_left_button = document.getElementById("left-button");
+let e_right_button = document.getElementById("right-button");
 // results table and transcription panes
 let e_table = document.getElementById("results-table");
 let e_transcriptions = {};
@@ -64,7 +67,73 @@ function set_metric(event) {
   draw_grid(context.n_cells, context.fst, context.lst, true);
 }
 
+// Given index into ptrs global array, load the main image and transcriptions
+function load_image(i) {
+  /* Open image */
+  let ptr = ptrs[i];
+  e_img.src = ptr_to_url(ptr);
+  e_img.alt = ptr;
+
+  // Display image metadata
+  e_img_ptr.innerHTML = ptr;
+  e_img_index.innerHTML = i;
+  e_img_val_lbl.innerHTML = metric_name;
+  e_img_val.innerHTML = weights[i];
+  e_img_val.style.borderColor = hotiron(weights[i], wmin, wmax);
+  // Show the results table
+  e_table.innerHTML = '';
+  for (const m of Object.keys(metrics)) {
+    let tr = document.createElement("tr")
+    let key = document.createElement("td");
+    key.innerHTML = m;
+    let val = document.createElement("td");
+    val.className = "big-border";
+    val.innerHTML = metrics[m][i];
+    val.style.borderColor = hotiron(metrics[m][i], metric_ranges[m][0], metric_ranges[m][1]);
+    tr.appendChild(key);
+    tr.appendChild(val);
+    e_table.appendChild(tr);
+  }
+
+  for (const dir of config["txts-dirs"]) {
+    fetch(`data/txts/${dir}/${ptr}.txt`)
+      .then(response => response.text())
+      .then(text => e_transcriptions[dir].innerHTML = text.split("\n").join("<br><br>"));
+  }
+}
+
+// Navigate to the requested image on the dashboard
+function nav_image(i, redraw=true) {
+  let [fst, lst, cells_per_row, cell_len, em, side_len, row, col] = index_to_range(i);
+  let n_cells = lst-fst+1;
+
+  // Make back button return to the original state
+  zoom_stack = [];
+  e_back_button.style.display = "block";
+  let top_per_cell = Math.ceil(ptrs.length / max_n_cells);
+  let top_n_cells = Math.ceil(ptrs.length / top_per_cell);
+  let top_cells_per_row = Math.ceil(Math.sqrt(top_n_cells));
+  let [top_row, top_col] = [Math.floor(i/n_cells/top_cells_per_row), Math.floor(i/n_cells)%top_cells_per_row];
+  zoom_stack.push([max_n_cells, [top_row, top_col], [0, ptrs.length-1]]);
+
+  remove_last_outline();
+  // Draw the grid itself
+  if (redraw == true) {
+    draw_grid(n_cells, fst, lst);
+  }
+
+  // Draw highlight around selected image
+  draw_outline(highlight, row, col, cell_len, em, side_len); // Add new
+  remove_last_outline = function() {
+    draw_outline(background, row, col, cell_len, em, side_len); // Remove
+  }
+
+  // Load the image
+  load_image(i);
+}
+
 function back(event) {
+  remove_last_outline = function() {};
   let select = e_canvas.select;
   let hover = e_canvas.hover;
   let redraw = e_canvas.redraw;
@@ -84,6 +153,49 @@ function back(event) {
   e_canvas.highlight_square(row, col);
 }
 e_back_button.addEventListener('click', back, false);
+
+function flip_page(diff) {
+  let i = parseInt(e_img_index.innerHTML), next;
+  if (diff != -1 && diff != 1) {
+    return; // Only allow flipping 1 page forward or back
+  }
+
+  let length = context.lst - context.fst + 1;
+  let per_cell = Math.ceil(length / max_n_cells);
+  if (per_cell != 1 && !isNaN(i)) {
+    return; // Abort page turn if not at 1-page zoom (unless first time)
+  }
+
+  if (isNaN(i)) {
+    next = context.fst;
+    if (next == undefined) {
+      next = 0;
+    }
+  } else {
+    next = i + diff;
+  }
+  if (next < 0 || next >= ptrs.length) {
+    return; // No flipping page out of bounds
+  }
+
+  // Only redraw if the image is old
+  let redraw = isNaN(i) || next < context.fst || next > context.lst; // first time or out of range
+  // If the change is more than one, then switch to current view
+  if (next < context.fst - 1 || next > context.lst + 1) {
+    if (diff == 1) {
+      next = context.fst;
+    } else {
+      next = context.lst;
+    }
+  }
+  nav_image(next, redraw);
+
+  // Change the URL to reflect the latest image
+  let sanitized_metric = metric_name.toLowerCase().replace(/ /g,'');
+  window.location.hash = `metric=${sanitized_metric}&ptr=${ptrs[next]}`;
+}
+e_left_button.addEventListener('click', (e) => flip_page(-1), false);
+e_right_button.addEventListener('click', (e) => flip_page(1), false);
 
 // main function
 (async () => {
@@ -191,6 +303,51 @@ e_back_button.addEventListener('click', back, false);
 
   metric_name = Object.keys(metrics)[0];
   set_weights(metric_name);
-  draw_grid(n_cells, 0, ptrs.length - 1);
-})();
 
+  // Let the routing begin...
+  let args = window.location.hash.substring(1).split("&").map(x => x.split("="));
+  let metric = args.reduce((acc, x) => x.length == 2 && x[0] == "metric" ? x[1] : acc, undefined);
+  let [route, arg] = args.reduce((acc, x) => x.length == 2 && ["id", "ptr"].includes(x[0]) ? x : acc, ["", undefined]);
+
+  if (metric != undefined) {
+    if (!(metric in metrics)) {
+      let keys = Object.keys(metrics);
+      let i = keys.map(x => x.toLowerCase().replace(/ /g, '')).indexOf(metric.toLowerCase()); // similar string editing to `sanitized_metric` in grid.js
+      if (i != -1) {
+        metric = keys[i];
+      }
+    }
+    set_weights(metric);
+
+    // Update the visual selector
+    if (metric in metrics) {
+      let selector = document.getElementById("metric");
+      selector.value = metric;
+    }
+  }
+
+  if (arg == undefined) {
+    route = ""; // Abort navigation on empty arg
+  }
+  switch (route.toLowerCase()) {
+    case 'ptr':
+      let i = ptrs.indexOf(arg);
+      if (i == -1) {
+        console.error(`Expected '${arg}' to be a valid ptr.`)
+        break;
+      }
+      arg = i;
+      /* fallthrough */
+    case 'id':
+      arg = parseInt(arg);
+      if (arg < 0 || arg >= ptrs.length) {
+        console.error(`Expected 0 <= id < ${ptrs.length}, but id == ${arg}`);
+        break;
+      }
+      nav_image(arg); // Load the grid to the correct image
+      return;
+  }
+
+  // After all that routing, this is the default alternative:
+  draw_grid(max_n_cells, 0, ptrs.length - 1);
+})();

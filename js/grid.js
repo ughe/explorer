@@ -19,11 +19,12 @@ function hotiron(x, xmin, xmax) {
   return "rgb("+r+", "+g+", "+b+")";
 }
 
+// Return the local path to the image pointer. Uses global var `config`
 function ptr_to_url(ptr) {
   return `data/imgs/${ptr}.${config["imgs-fmt"]}`;
 }
 
-let pad = (n, m, pre) => ("" + n).padStart(m, pre); // helper for padding text
+let pad = (n, m, pre) => ("" + n).padStart(m, pre); // pads n to width m with pre
 
 // Convert from (x,y) to row, col, index, and pointer subrange
 // Reference: https://stackoverflow.com/a/17130415
@@ -58,9 +59,6 @@ function index_of_event(canvas, cl, cpr, em, event) {
   let [r, c] = coor_of_event(canvas, cl, cpr, em, event);
   let fc = (r, c) => (c + r * cpr);
   let i = fc(r, c); // flatten coordinates
-  if (i >= n_cells) {
-    i = n_cells - 1;
-  }
   return i;
 }
 // With an x,y mouse event, extract the first and last element in range of length
@@ -79,14 +77,53 @@ function range_of_event(length, canvas, cl, cpr, per_cell, em, event) {
   return [fst, lst];
 }
 
+// Returns range containing ptr as well as useful calculations for rendering
+function index_to_range(i) {
+  let [fst, lst] = [0, ptrs.length-1];
+  let n_cells = max_n_cells, length = 1, per_cell, cells_per_row = 1;
+  per_cell = lst - fst + 1; // inits length start of loop
+  while (per_cell > 1) {
+    length = per_cell;
+    per_cell = Math.ceil(length / n_cells);
+    n_cells = Math.ceil(length / per_cell);
+    cells_per_row = Math.ceil(Math.sqrt(n_cells));
+  }
+  // Calculate appropriate fst, lst:
+  let j = Math.floor(i / length);
+  let first = j*length;
+  let last = Math.min((j+1)*length-1, ptrs.length-1);
+  let [row, col] = [Math.floor(i%n_cells/cells_per_row), i%n_cells%cells_per_row];
+
+  // Final page of results needs special treatment for highlighting
+  if (i >= Math.floor(ptrs.length / n_cells)*n_cells) {
+    first = Math.floor(ptrs.length / n_cells)*n_cells
+    last = ptrs.length-1
+    length = last - first + 1;
+    per_cell = Math.ceil(length / length);
+    cells_per_row = Math.ceil(Math.sqrt(length));
+    [row, col] = [Math.floor((i - first)/cells_per_row), (i - first)%cells_per_row];
+  }
+
+  const cell_len = Math.floor(grid_len / cells_per_row);
+  let side_len = cell_len - margin_len*2; // since per_cell == 1
+  const extra_margin = grid_len - (cell_len * cells_per_row);
+  const em = Math.floor(extra_margin / 2);
+
+  return [first, last, cells_per_row, cell_len, em, side_len, row, col];
+}
+
 function draw_grid(n_cells, fst, lst, skip_img=false) {
   zoom_lock += 1;
   let _zoom_lock = zoom_lock;
+
+  if (n_cells > max_n_cells) {
+    n_cells = max_n_cells;
+  }
   let length = lst - fst + 1;
   let per_cell = Math.ceil(length / n_cells);
   n_cells = Math.ceil(length / per_cell);
-  const cells_per_row = Math.ceil(Math.sqrt(n_cells));
-  let unused_cells = cells_per_row*cells_per_row - n_cells;
+  let cells_per_row = Math.ceil(Math.sqrt(n_cells));
+  //let unused_cells = cells_per_row*cells_per_row - n_cells; // Unused
   const cell_len = Math.floor(grid_len / cells_per_row);
   let side_len = cell_len - margin_len;
   if (per_cell == 1) {
@@ -96,14 +133,14 @@ function draw_grid(n_cells, fst, lst, skip_img=false) {
   const extra_margin = grid_len - (cell_len * cells_per_row);
   const em = Math.floor(extra_margin / 2);
 
-  let fc = (r, c) => (c + r * cells_per_row);
+  let fc = (r, c) => (c + r * cells_per_row); // flatten coordinates
 
   // save params
   context.n_cells = n_cells;
   context.fst = fst;
   context.lst = lst;
 
-  context.fillStyle = highlight;
+  context.fillStyle = background;
   if (!skip_img) {
     context.fillRect(0, 0, grid_len, grid_len);
   }
@@ -127,12 +164,13 @@ function draw_grid(n_cells, fst, lst, skip_img=false) {
                             em + j*cell_len + strip_width + margin_len,
                             em + i*cell_len, side_len - strip_width - margin_len, side_len);
         };
-        if (!skip_img) {
-          img.src = ptr_to_url(ptrs[fst + fc(i, j)]);
-        } else {
+        if (skip_img) {
+          // Draw color strip beside image
           let s = Math.min(img.width, img.height);
           context.fillStyle = color;
           context.fillRect(em + j*cell_len, em + i*cell_len, strip_width, side_len);
+        } else {
+          img.src = ptr_to_url(ptrs[fst + fc(i, j)]);
         }
       } else {
         context.fillStyle = color;
@@ -157,7 +195,7 @@ function draw_grid(n_cells, fst, lst, skip_img=false) {
       e_ptr_hover.innerHTML = `${ptrs[fst + _fst]} to ${ptrs[fst + _lst]}`;
       let ws = weights.slice(fst + _fst, fst + _lst + 1);
       let avgw = ws.reduce((a, w) => a + parseFloat(w), 0) / ws.length;
-      e_val_hover.innerHTML = avgw.toFixed(2); // TODO: might take too much time
+      e_val_hover.innerHTML = avgw.toFixed(2); // Avg is calculated every hover!
     } else {
       e_ptr_hover.innerHTML = `${ptrs[fst + _fst]}`;
       e_val_hover.innerHTML = weights[fst + _fst];
@@ -177,47 +215,29 @@ function draw_grid(n_cells, fst, lst, skip_img=false) {
       e_canvas.removeEventListener('mousemove', hover, false);
       /* Launch new grid */
       e_back_button.style.display = "block";
-      zoom_stack.push([n_cells, [row, col], [fst, lst]]);
-      draw_grid(per_cell, _fst, _lst);
+      let peek = zoom_stack[zoom_stack.length-1];
+      if (peek == undefined || peek[0] != n_cells || peek[1][0] != row || peek[1][1] != col || peek [2][0] != fst || peek[2][0] != lst) { // Only redraw if different
+        zoom_stack.push([n_cells, [row, col], [fst, lst]]);
+        draw_grid(per_cell, _fst, _lst);
+      }
     } else {
-      /* Open image */
-      let ptr = ptrs[fst + _fst];
-      e_img.src = ptr_to_url(ptr);
-      e_img.alt = ptr;
-
-      // Display image metadata
-      e_img_ptr.innerHTML = ptr;
-      e_img_index.innerHTML = fst + _fst;
-      e_img_val_lbl.innerHTML = metric_name;
-      e_img_val.innerHTML = weights[fst + _fst];
-      e_img_val.style.borderColor = hotiron(weights[fst + _fst], wmin, wmax);
-      // Show the results table
-      e_table.innerHTML = '';
-      for (const m of Object.keys(metrics)) {
-        let tr = document.createElement("tr")
-        let key = document.createElement("td");
-        key.innerHTML = m;
-        let val = document.createElement("td");
-        val.className = "big-border";
-        val.innerHTML = metrics[m][fst + _fst];
-        val.style.borderColor = hotiron(metrics[m][fst + _fst], metric_ranges[m][0], metric_ranges[m][1]);
-        tr.appendChild(key);
-        tr.appendChild(val);
-        e_table.appendChild(tr);
+      // Draw outline around image
+      remove_last_outline();
+      draw_outline(highlight, row, col, cell_len, em, side_len); // Add new
+      remove_last_outline = function() {
+        draw_outline(background, row, col, cell_len, em, side_len); // Remove
       }
 
-      for (const dir of config["txts-dirs"]) {
-        fetch(`data/txts/${dir}/${ptr}.txt`)
-          .then(response => response.text())
-          .then(text => e_transcriptions[dir].innerHTML = text.split("\n").join("<br><br>"));
-        // e_gcp_cer.style.borderColor = hotiron(gcp_cer[fst + _fst], wmin, wmax);
-        // TODO ^ labels are no longer directly on top of transcriptions
-      }
+      load_image(fst + _fst);
+
+      // Change the URL to reflect the latest image
+      let sanitized_metric = metric_name.toLowerCase().replace(/ /g,'');
+      window.location.hash = `metric=${sanitized_metric}&ptr=${ptrs[fst+_fst]}`;
     }
   }
 
   function highlight_square(row, col) {
-    let bw = cell_len/3; // border width
+    let bw = 1; // border width
     context.fillStyle = highlight;
     context.fillRect(em + col*cell_len + bw/2,
                      em + row*cell_len + bw/2,
@@ -230,4 +250,15 @@ function draw_grid(n_cells, fst, lst, skip_img=false) {
   e_canvas.hover = hover;
   e_canvas.select = select;
   e_canvas.highlight_square = highlight_square;
+}
+
+let remove_last_outline = function() {}; // Removes outline around selected img
+
+function draw_outline(color, row, col, cell_len, em, side_len) {
+  let m = margin_len;
+  context.fillStyle = color; // fillRect order: left, top, right, bottom
+  context.fillRect(em+col*cell_len-m*2, em+row*cell_len-m*2, m*2, side_len+m*2);
+  context.fillRect(em+col*cell_len-m*2, em+row*cell_len-m*2, side_len+m*4, m*2);
+  context.fillRect(em+col*cell_len+side_len, em+row*cell_len, m*2, side_len+m*2);
+  context.fillRect(em+col*cell_len-m*2, em+row*cell_len+side_len, side_len+m*4, m*2);
 }
