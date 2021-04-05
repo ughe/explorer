@@ -96,8 +96,8 @@ function index_to_range(i) {
 
   // Final page of results needs special treatment for highlighting
   if (i >= Math.floor(ptrs.length / n_cells)*n_cells) {
-    first = Math.floor(ptrs.length / n_cells)*n_cells
-    last = ptrs.length-1
+    first = Math.floor(ptrs.length / n_cells)*n_cells;
+    last = ptrs.length-1;
     length = last - first + 1;
     per_cell = Math.ceil(length / length);
     cells_per_row = Math.ceil(Math.sqrt(length));

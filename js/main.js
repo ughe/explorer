@@ -171,10 +171,7 @@ function flip_page(diff) {
   }
 
   if (isNaN(i)) {
-    next = context.fst;
-    if (next == undefined) {
-      next = 0;
-    }
+    next = 0;
   } else {
     next = i + diff;
   }
@@ -191,6 +188,10 @@ function flip_page(diff) {
     } else {
       next = context.lst;
     }
+  }
+  if (redraw) {
+    e_canvas.removeEventListener('click', e_canvas.select, false);
+    e_canvas.removeEventListener('mousemove', e_canvas.hover, false);
   }
   nav_image(next, redraw);
 }
