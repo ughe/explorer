@@ -108,13 +108,15 @@ function nav_image(i, redraw=true) {
   let n_cells = lst-fst+1;
 
   // Make back button return to the original state
-  zoom_stack = [];
-  e_back_button.style.display = "block";
-  let top_per_cell = Math.ceil(ptrs.length / max_n_cells);
-  let top_n_cells = Math.ceil(ptrs.length / top_per_cell);
-  let top_cells_per_row = Math.ceil(Math.sqrt(top_n_cells));
-  let [top_row, top_col] = [Math.floor(i/n_cells/top_cells_per_row), Math.floor(i/n_cells)%top_cells_per_row];
-  zoom_stack.push([max_n_cells, [top_row, top_col], [0, ptrs.length-1]]);
+  if (ptrs.length > max_n_cells) {
+    zoom_stack = [];
+    e_back_button.style.display = "block";
+    let top_per_cell = Math.ceil(ptrs.length / max_n_cells);
+    let top_n_cells = Math.ceil(ptrs.length / top_per_cell);
+    let top_cells_per_row = Math.ceil(Math.sqrt(top_n_cells));
+    let [top_row, top_col] = [Math.floor(i/n_cells/top_cells_per_row), Math.floor(i/n_cells)%top_cells_per_row];
+    zoom_stack.push([max_n_cells, [top_row, top_col], [0, ptrs.length-1]]);
+  }
 
   remove_last_outline();
   // Draw the grid itself
@@ -179,8 +181,8 @@ function flip_page(diff) {
     return; // No flipping page out of bounds
   }
 
-  // Only redraw if the image is old
-  let redraw = isNaN(i) || next < context.fst || next > context.lst; // first time or out of range
+  // redraw if multiple views and first time or out of range
+  let redraw = ptrs.length > max_n_cells && (isNaN(i) || next < context.fst || next > context.lst);
   // If the change is more than one, then switch to current view
   if (next < context.fst - 1 || next > context.lst + 1) {
     if (diff == 1) {
