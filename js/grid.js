@@ -232,7 +232,7 @@ function draw_grid(n_cells, fst, lst, skip_img=false) {
 
       // Change the URL to reflect the latest image
       let sanitized_metric = metric_name.toLowerCase().replace(/ /g,'');
-      window.location.hash = `metric=${sanitized_metric}&ptr=${ptrs[fst+_fst]}`;
+      window.history.pushState(0, document.title, `?ptr=${ptrs[fst+_fst]}&metric=${sanitized_metric}`);
     }
   }
 

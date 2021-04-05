@@ -130,6 +130,10 @@ function nav_image(i, redraw=true) {
 
   // Load the image
   load_image(i);
+
+  // Change the URL to reflect the latest image
+  let sanitized_metric = metric_name.toLowerCase().replace(/ /g,'');
+  window.history.pushState(0, document.title, `?ptr=${ptrs[i]}&metric=${sanitized_metric}`);
 }
 
 function back(event) {
@@ -189,10 +193,6 @@ function flip_page(diff) {
     }
   }
   nav_image(next, redraw);
-
-  // Change the URL to reflect the latest image
-  let sanitized_metric = metric_name.toLowerCase().replace(/ /g,'');
-  window.location.hash = `metric=${sanitized_metric}&ptr=${ptrs[next]}`;
 }
 e_left_button.addEventListener('click', (e) => flip_page(-1), false);
 e_right_button.addEventListener('click', (e) => flip_page(1), false);
@@ -305,7 +305,7 @@ e_right_button.addEventListener('click', (e) => flip_page(1), false);
   set_weights(metric_name);
 
   // Let the routing begin...
-  let args = window.location.hash.substring(1).split("&").map(x => x.split("="));
+  let args = window.location.search.substring(1).split("&").map(x => x.split("="));
   let metric = args.reduce((acc, x) => x.length == 2 && x[0] == "metric" ? x[1] : acc, undefined);
   let [route, arg] = args.reduce((acc, x) => x.length == 2 && ["id", "ptr"].includes(x[0]) ? x : acc, ["", undefined]);
 
