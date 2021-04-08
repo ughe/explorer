@@ -179,6 +179,10 @@ function draw_grid(n_cells, fst, lst, skip_img=false) {
     }
   }
 
+  if (skip_img) {
+    return; // Finished with the metric color update. Prevents adding event listeners below
+  }
+
   e_ptr.innerHTML = `${ptrs[fst]} to ${ptrs[lst]}`;
   e_nimgs.innerHTML = length;
 
