@@ -254,3 +254,7 @@ canvas {
 #results-table {
   border-spacing: 1px;
 }
+.results {
+  overflow-y: auto;
+  max-height: calc( 100vh - 53px * 3);
+}
