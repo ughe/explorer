@@ -255,6 +255,6 @@ canvas {
   border-spacing: 1px;
 }
 .results {
-  overflow-y: auto;
+  overflow-y: scroll;
   max-height: calc( 100vh - 53px * 3);
 }
